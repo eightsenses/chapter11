@@ -7,7 +7,7 @@ import { supabase } from '@/utils/supabase';
 const Header: React.FC = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    window.location.href = '/';
   };
 
   const { session, isLoding } = useSupabaseSession();
