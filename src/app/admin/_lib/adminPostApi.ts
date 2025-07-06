@@ -8,23 +8,37 @@ const fetchJson = async (url: string, options?: RequestInit) => {
   }
   return res.json();
 };
-
 //管理者_記事一覧
-export const adminFetchPosts = async (): Promise<Post[]> => {
-  const data = await fetchJson('/api/admin/posts');
+export const adminFetchPosts = async (token?: string): Promise<Post[]> => {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers.Authorization = token;
+  }
+
+  const data = await fetchJson('/api/admin/posts', { headers });
   return data.posts;
 };
 //管理者_記事詳細
-export const adminFetchPost = async (id: string): Promise<Post> => {
-  const data = await fetchJson(`/api/admin/posts/${id}`);
+export const adminFetchPost = async (id: string, token?: string): Promise<Post> => {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers.Authorization = token;
+  }
+
+  const data = await fetchJson(`/api/admin/posts/${id}`, { headers });
   return data.post;
 };
 //管理者_記事作成
-export const createPost = async (postData: PostInput): Promise<Post> => {
+export const createPost = async (postData: PostInput, token?: string): Promise<Post> => {
   try {
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers.Authorization = token;
+    }
+
     return await fetchJson('/api/admin/posts', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(postData)
     });
   } catch (error) {
@@ -33,11 +47,19 @@ export const createPost = async (postData: PostInput): Promise<Post> => {
   }
 };
 //管理者_記事更新
-export const updatePost = async (id: string, postData: PostInput): Promise<Post> => {
+export const updatePost = async (
+  id: string,
+  postData: PostInput,
+  token?: string
+): Promise<Post> => {
   try {
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers.Authorization = token;
+    }
     return await fetchJson(`/api/admin/posts/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(postData)
     });
   } catch (error) {
@@ -46,10 +68,15 @@ export const updatePost = async (id: string, postData: PostInput): Promise<Post>
   }
 };
 //管理者_記事削除
-export const deletePost = async (id: string): Promise<{ message: string }> => {
+export const deletePost = async (id: string, token?: string): Promise<{ message: string }> => {
   try {
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers.Authorization = token;
+    }
     return await fetchJson(`/api/admin/posts/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers
     });
   } catch (error) {
     console.error('記事削除エラー:', error);

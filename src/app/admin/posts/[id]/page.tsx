@@ -3,24 +3,26 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { adminFetchPost, updatePost, deletePost } from '@/app/admin/_lib/adminPostApi';
 import PostForm from '@/app/admin/posts/_components/PostForm';
+import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession';
 
 export default function EditPost({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [thumbnailImageUrl, setThumbnailImageUrl] = useState<null | string>(null);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
+  const { token } = useSupabaseSession();
   useEffect(() => {
+    if (!token) return;
     const initializePage = async () => {
       try {
-        const post = await adminFetchPost(params.id);
+        const post = await adminFetchPost(params.id, token);
 
         setTitle(post.title);
         setContent(post.content);
-        setThumbnailUrl(post.thumbnailUrl);
+        setThumbnailImageUrl(post.thumbnailImageKey);
         setSelectedCategories(post.postCategories.map((pc) => pc.category.id));
       } catch (err) {
         setError('データの取得に失敗しました');
@@ -29,7 +31,7 @@ export default function EditPost({ params }: { params: { id: string } }) {
     };
 
     initializePage();
-  }, [params.id]);
+  }, [params.id, token]);
 
   const handleCategory = (categoryId: number) => {
     setSelectedCategories((prev) =>
@@ -51,7 +53,7 @@ export default function EditPost({ params }: { params: { id: string } }) {
       await updatePost(params.id, {
         title,
         content,
-        thumbnailUrl,
+        thumbnailImageKey: thumbnailImageUrl || '',
         categories: selectedCategories.map((id) => ({ id }))
       });
       alert('記事を更新しました。');
@@ -100,8 +102,8 @@ export default function EditPost({ params }: { params: { id: string } }) {
         setTitle={setTitle}
         content={content}
         setContent={setContent}
-        thumbnailUrl={thumbnailUrl}
-        setThumbnailUrl={setThumbnailUrl}
+        thumbnailImageUrl={thumbnailImageUrl}
+        setThumbnailImageUrl={setThumbnailImageUrl}
         selectedCategories={selectedCategories}
         onCategoryToggle={handleCategory}
         isSubmitting={isSubmitting}

@@ -26,7 +26,8 @@ export const GET = async (request: NextRequest) => {
 
     return NextResponse.json({ status: 'OK', posts: posts }, { status: 200 });
   } catch (error) {
-    if (error instanceof Error) return NextResponse.json({ status: error.message }, { status: 400 });
+    if (error instanceof Error)
+      return NextResponse.json({ status: error.message }, { status: 400 });
   }
 };
 
@@ -36,15 +37,15 @@ export const POST = async (request: NextRequest, context: any) => {
     // リクエストのbodyを取得
     const body = await request.json();
 
-    // bodyの中からtitle, content, categories, thumbnailUrlを取り出す
-    const { title, content, categories, thumbnailUrl }: PostInput = body;
+    // bodyの中からtitle, content, categories, thumbnailImageKeyを取り出す
+    const { title, content, categories, thumbnailImageKey }: PostInput = body;
 
     // 投稿をDBに生成
     const data = await prisma.post.create({
       data: {
         title,
         content,
-        thumbnailUrl
+        thumbnailImageKey
       }
     });
 

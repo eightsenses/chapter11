@@ -1,10 +1,9 @@
-import type { Metadata } from 'next';
-import AdminLayout from '@/app/admin/_components/AdminLayout';
+'use client';
 
-export const metadata: Metadata = {
-  title: '管理画面'
-};
+import AdminLayout from '@/app/admin/_components/AdminLayout';
+import { useRouteGuard } from './_hooks/useRouteGuard';
 
 export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
+  useRouteGuard();
   return <AdminLayout>{children}</AdminLayout>;
 }

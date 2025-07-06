@@ -9,12 +9,22 @@ const fetchJson = async (url: string, options?: RequestInit) => {
   return res.json();
 };
 //記事一覧
-export const fetchPosts = async (): Promise<Post[]> => {
-  const data = await fetchJson('/api/posts');
+export const fetchPosts = async (token?: string): Promise<Post[]> => {
+  const headers: HeadersInit = {};
+  if (token) {
+    headers.Authorization = token;
+  }
+
+  const data = await fetchJson('/api/posts', { headers });
   return data.posts;
 };
 //記事詳細
-export const fetchPost = async (id: string): Promise<Post> => {
-  const data = await fetchJson(`/api/posts/${id}`);
+export const fetchPost = async (id: string, token?: string): Promise<Post> => {
+  const headers: HeadersInit = {};
+  if (token) {
+    headers.Authorization = token;
+  }
+
+  const data = await fetchJson(`/api/posts/${id}`, { headers });
   return data.post;
 };

@@ -28,7 +28,8 @@ export const GET = async (request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json({ status: 'OK', post: post }, { status: 200 });
   } catch (error) {
-    if (error instanceof Error) return NextResponse.json({ status: error.message }, { status: 400 });
+    if (error instanceof Error)
+      return NextResponse.json({ status: error.message }, { status: 400 });
   }
 };
 
@@ -42,7 +43,7 @@ export const PUT = async (
   const { id } = params;
 
   // リクエストのbodyを取得
-  const { title, content, categories, thumbnailUrl }: PostInput = await request.json();
+  const { title, content, categories, thumbnailImageKey }: PostInput = await request.json();
 
   try {
     // idを指定して、Postを更新
@@ -53,7 +54,7 @@ export const PUT = async (
       data: {
         title,
         content,
-        thumbnailUrl
+        thumbnailImageKey
       }
     });
 
@@ -78,7 +79,8 @@ export const PUT = async (
     // レスポンスを返す
     return NextResponse.json({ status: 'OK', post: post }, { status: 200 });
   } catch (error) {
-    if (error instanceof Error) return NextResponse.json({ status: error.message }, { status: 400 });
+    if (error instanceof Error)
+      return NextResponse.json({ status: error.message }, { status: 400 });
   }
 };
 
@@ -102,6 +104,7 @@ export const DELETE = async (
     // レスポンスを返す
     return NextResponse.json({ status: 'OK' }, { status: 200 });
   } catch (error) {
-    if (error instanceof Error) return NextResponse.json({ status: error.message }, { status: 400 });
+    if (error instanceof Error)
+      return NextResponse.json({ status: error.message }, { status: 400 });
   }
 };
