@@ -19,8 +19,8 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: '【10章】NextJSでのバックエンド開発演習（前半）',
-  description: '前章で学んだmicroCMSで作った部分を、 ハンズオン形式で0からコードを書いて作る'
+  title: '【11章】NextJSでのバックエンド開発演習（後半）',
+  description: 'データベースをローカル環境からSupabaseに移行'
 };
 
 export default function RootLayout({
