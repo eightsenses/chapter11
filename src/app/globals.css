@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --color-primary: #333333;
+  --color-white: #ffffff;
+}
+
+body {
+  color: var(--color-primary);
+  background: var(--background);
+}
+
+@layer base {
+  body {
+    color: var(--color-primary);
+  }
+}
+
+@layer components {
+  .header {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+  }
+  @media (width < 768px) {
+    body:has(aside) .header {
+      padding-right: 60px;
+    }
+  }
+}

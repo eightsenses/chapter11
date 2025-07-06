@@ -1,0 +1,20 @@
+{
+  "parser": {
+    ".tsx": "@markuplint/jsx-parser"
+  },
+  "specs": {
+    ".tsx$": "@markuplint/react-spec"
+  },
+  "extends": [
+    "markuplint:recommended"
+  ],
+  "rules": {
+    "attr-value-quotes": {
+      "severity": "error",
+      "value": "double"
+    },
+    "required-attr": true,
+    "permitted-contents": true,
+    "case-sensitive-attr-name": false
+  }
+}
