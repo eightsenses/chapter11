@@ -1,20 +1,23 @@
 'use client';
 import Link from 'next/link';
 import React from 'react';
-import { useSupabaseSession } from '../_hooks/useSupabaseSession';
+import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession';
 import { supabase } from '@/utils/supabase';
+import { useRouter } from 'next/navigation';
 
 const Header: React.FC = () => {
+  const router = useRouter();
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/';
+    router.push('/');
   };
 
-  const { session, isLoding } = useSupabaseSession();
+  const { session, isLoading } = useSupabaseSession();
   return (
     <header className="header flex justify-between p-3 font-bold tracking-wide md:p-5">
       <Link href="/">BLOG</Link>
-      {!isLoding && (
+      {!isLoading && (
         <div className="flex items-center gap-3">
           {session ? (
             <>

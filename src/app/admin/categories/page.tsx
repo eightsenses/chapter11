@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { fetchCategories } from '@/app/admin/_lib/adminCategoryApi';
-import { Category } from '../../_types/categories';
+import { Category } from '@/app/_types/categories';
 import StatusMessage from '@/app/_components/StatusMessage';
 
 export default function CategoryList() {
@@ -31,7 +31,10 @@ export default function CategoryList() {
     <>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold md:text-3xl">カテゴリー一覧</h1>
-        <Link href="/admin/categories/new" className="mb-4 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
+        <Link
+          href="/admin/categories/new"
+          className="mb-4 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+        >
           カテゴリー作成
         </Link>
       </div>

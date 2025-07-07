@@ -49,19 +49,16 @@ const PostForm: React.FC<PostFormProps> = ({
       return;
     }
 
-    const file = event.target.files[0]; // 選択された画像を取得
+    const file = event.target.files[0];
 
-    const filePath = `private/${uuidv4()}`; // ファイルパスを指定
+    const filePath = `private/${uuidv4()}`;
 
     // Supabaseに画像をアップロード
-    const { data, error } = await supabase.storage
-      .from('post-thumbnail') // ここでバケット名を指定
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+    const { data, error } = await supabase.storage.from('post-thumbnail').upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false
+    });
 
-    // アップロードに失敗したらエラーを表示して終了
     if (error) {
       alert(error.message);
       return;
