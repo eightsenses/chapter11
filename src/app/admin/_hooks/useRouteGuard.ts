@@ -9,12 +9,8 @@ export const useRouteGuard = () => {
   useEffect(() => {
     if (session === undefined) return; // sessionがundefinedの場合は読み込み中なので何もしない
 
-    const fetcher = async () => {
-      if (session === null) {
-        router.replace('/login');
-      }
-    };
-
-    fetcher();
+    if (session === null) {
+      router.replace('/login');
+    }
   }, [router, session]);
 };
