@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { PostInput } from '@/app/_types/posts';
+import { checkAuth } from '@/utils/supabase';
 
 const prisma = new PrismaClient();
 
 export const GET = async (request: NextRequest) => {
+  // 認証チェック
+  const { isAuthorized, response } = await checkAuth(request);
+  if (!isAuthorized) return response;
+
   try {
     const posts = await prisma.post.findMany({
       include: {
@@ -33,6 +38,10 @@ export const GET = async (request: NextRequest) => {
 
 // POSTという命名にすることで、POSTリクエストの時にこの関数が呼ばれる
 export const POST = async (request: NextRequest, context: any) => {
+  // 認証チェック
+  const { isAuthorized, response } = await checkAuth(request);
+  if (!isAuthorized) return response;
+
   try {
     // リクエストのbodyを取得
     const body = await request.json();

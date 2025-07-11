@@ -9,34 +9,67 @@ const fetchJson = async (url: string, options?: RequestInit) => {
   return res.json();
 };
 //管理者_カテゴリー一覧
-export const fetchCategories = async (): Promise<Category[]> => {
-  const data = await fetchJson('/api/admin/categories');
+export const fetchCategories = async (token?: string): Promise<Category[]> => {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers.Authorization = token;
+  }
+
+  const data = await fetchJson('/api/admin/categories', { headers });
   return Array.isArray(data.categories) ? data.categories : [];
 };
 //管理者_カテゴリー詳細
-export const fetchCategory = async (id: string): Promise<Category> => {
-  const data = await fetchJson(`/api/admin/categories/${id}`);
+export const fetchCategory = async (id: string, token?: string): Promise<Category> => {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers.Authorization = token;
+  }
+
+  const data = await fetchJson(`/api/admin/categories/${id}`, { headers });
   return data.categories;
 };
 //管理者_カテゴリー作成
-export const createCategory = async (categoryData: Pick<Category, 'name'>): Promise<Category> => {
+export const createCategory = async (
+  categoryData: Pick<Category, 'name'>,
+  token?: string
+): Promise<Category> => {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers.Authorization = token;
+  }
+
   return await fetchJson('/api/admin/categories', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(categoryData)
   });
 };
 //管理者_カテゴリー更新
-export const updateCategory = async (id: string, categoryData: Pick<Category, 'name'>): Promise<Category> => {
+export const updateCategory = async (
+  id: string,
+  categoryData: Pick<Category, 'name'>,
+  token?: string
+): Promise<Category> => {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers.Authorization = token;
+  }
+
   return await fetchJson(`/api/admin/categories/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(categoryData)
   });
 };
 //管理者_カテゴリー削除
-export const deleteCategory = async (id: string): Promise<void> => {
+export const deleteCategory = async (id: string, token?: string): Promise<void> => {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers.Authorization = token;
+  }
+
   await fetchJson(`/api/admin/categories/${id}`, {
-    method: 'DELETE'
+    method: 'DELETE',
+    headers
   });
 };

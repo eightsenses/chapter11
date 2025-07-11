@@ -3,24 +3,27 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchCategory, updateCategory, deleteCategory } from '@/app/admin/_lib/adminCategoryApi';
 import CategoriesForm from '../_components/CategoriesForm';
+import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession';
 
 const EditCategory = ({ params }: { params: { id: string } }) => {
   const router = useRouter();
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { token } = useSupabaseSession();
 
   useEffect(() => {
+    if (!token) return;
     const getCategory = async () => {
       try {
-        const category = await fetchCategory(params.id);
+        const category = await fetchCategory(params.id, token);
         setName(category.name);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'カテゴリーの取得に失敗しました');
       }
     };
     getCategory();
-  }, [params.id]);
+  }, [params.id, token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
