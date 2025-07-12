@@ -1,23 +1,24 @@
 'use client';
+import { useForm } from 'react-hook-form';
+
 type AuthFormProps = {
-  email: string;
-  password: string;
-  onEmailChange: (value: string) => void;
-  onPasswordChange: (value: string) => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit: (data: FormData) => void;
   buttonText: string;
 };
 
-const AuthForm: React.FC<AuthFormProps> = ({
-  email,
-  password,
-  onEmailChange,
-  onPasswordChange,
-  onSubmit,
-  buttonText
-}) => {
+type FormData = {
+  email: string;
+  password: string;
+};
+
+const AuthForm: React.FC<AuthFormProps> = ({ onSubmit, buttonText }) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<FormData>();
   return (
-    <form onSubmit={onSubmit} className="w-full max-w-[400px] space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-[400px] space-y-4">
       <div>
         <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-900">
           メールアドレス
@@ -25,12 +26,20 @@ const AuthForm: React.FC<AuthFormProps> = ({
         <input
           type="email"
           id="email"
-          className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+          className={`block w-full rounded-lg border ${
+            errors.email ? 'border-red-500' : 'border-gray-300'
+          } bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500`}
           placeholder="name@company.com"
-          required
-          value={email}
-          onChange={(e) => onEmailChange(e.target.value)}
+          {...register('email', {
+            required: 'メールアドレスは必須です。',
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: 'メールアドレスの形式が正しくありません。'
+            }
+          })}
+          disabled={isSubmitting}
         />
+        {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>}
       </div>
       <div>
         <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-900">
@@ -40,11 +49,19 @@ const AuthForm: React.FC<AuthFormProps> = ({
           type="password"
           id="password"
           placeholder="••••••••"
-          className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-          required
-          value={password}
-          onChange={(e) => onPasswordChange(e.target.value)}
+          className={`block w-full rounded-lg border ${
+            errors.email ? 'border-red-500' : 'border-gray-300'
+          } bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500`}
+          {...register('password', {
+            required: 'パスワードはは必須です。',
+            minLength: {
+              value: 6,
+              message: 'パスワードは6文字以上で入力してください。'
+            }
+          })}
+          disabled={isSubmitting}
         />
+        {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>}
       </div>
 
       <div>

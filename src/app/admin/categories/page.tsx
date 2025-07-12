@@ -1,34 +1,17 @@
 'use client';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { fetchCategories } from '@/app/admin/_lib/adminCategoryApi';
-import { Category } from '@/app/_types/categories';
 import StatusMessage from '@/app/_components/StatusMessage';
 import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession';
+import { useAdminCategories } from '../_hooks/useAdminCategories';
 
 export default function CategoryList() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const { token } = useSupabaseSession();
-  useEffect(() => {
-    if (!token) return;
-
-    const fetcher = async () => {
-      try {
-        const data = await fetchCategories(token);
-        setCategories(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'カテゴリーの取得に失敗しました');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetcher();
-  }, [token]);
+  const { categories, isLoading, isError } = useAdminCategories(token);
 
   if (isLoading) return <StatusMessage message="読み込み中..." />;
-  if (error) return <StatusMessage message={error} className="text-2xl" />;
+  if (isError) return <StatusMessage message="カテゴリーの取得に失敗しました" />;
+  if (!categories || categories.length === 0)
+    return <StatusMessage message="カテゴリーがありません" />;
 
   return (
     <>

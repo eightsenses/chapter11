@@ -27,7 +27,7 @@ export const GET = async (request: NextRequest, { params }: { params: { id: stri
       }
     });
 
-    return NextResponse.json({ status: 'OK', categories }, { status: 200 });
+    return NextResponse.json({ status: 'OK', category: categories }, { status: 200 });
   } catch (error) {
     if (error instanceof Error)
       return NextResponse.json({ status: error.message }, { status: 400 });

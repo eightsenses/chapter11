@@ -1,34 +1,43 @@
 'use client';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { adminFetchPosts } from '@/app/admin/_lib/adminPostApi';
-import { Post } from '@/app/_types/posts';
+import useSWR from 'swr';
 import StatusMessage from '@/app/_components/StatusMessage';
 import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession';
+import { Post } from '@/app/_types/posts';
+
+const useAdminPosts = (token?: string | null) => {
+  const fetcher = async (url: string) => {
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers.Authorization = token;
+    }
+
+    const res = await fetch(url, { headers });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.message || '記事が見つかりません');
+    }
+
+    const data = await res.json();
+    return data.posts;
+  };
+
+  const { data, error, isLoading } = useSWR<Post[]>(token ? '/api/admin/posts' : null, fetcher);
+
+  return {
+    posts: data,
+    isLoading,
+    isError: error
+  };
+};
 
 export default function AdminPostsList() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const { token } = useSupabaseSession();
-  useEffect(() => {
-    if (!token) return;
-
-    const fetcher = async () => {
-      try {
-        const data = await adminFetchPosts(token);
-        setPosts(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : '記事の取得に失敗しました');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetcher();
-  }, [token]);
+  const { posts, isLoading, isError } = useAdminPosts(token);
 
   if (isLoading) return <StatusMessage message="読み込み中..." />;
-  if (error) return <StatusMessage message={error} className="text-2xl" />;
+  if (isError) return <StatusMessage message="記事の取得に失敗しました" />;
+  if (!posts || posts.length === 0) return <StatusMessage message="記事がありません" />;
 
   return (
     <>
