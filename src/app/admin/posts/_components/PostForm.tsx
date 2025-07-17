@@ -1,74 +1,115 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { Category } from '@/app/_types/categories';
-import { fetchCategories } from '@/app/admin/_lib/adminCategoryApi';
+import Image from 'next/image';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession';
+import { useAdminCategories } from '@/app/admin/_hooks/useAdminCategories';
+import { supabase } from '@/utils/supabase';
+import { v4 as uuidv4 } from 'uuid';
+
+type PostFormValues = {
+  title: string;
+  content: string;
+  categories: string[];
+  thumbnailImage: FileList;
+};
 
 type PostFormProps = {
-  title: string;
-  setTitle: (title: string) => void;
-  content: string;
-  setContent: (content: string) => void;
-  thumbnailUrl: string;
-  setThumbnailUrl: (thumbnailUrl: string) => void;
-  selectedCategories: number[];
-  onCategoryToggle: (categoryId: number) => void;
-  isSubmitting: boolean;
-  error: string | null;
-  onSubmit: (e: React.FormEvent) => void;
+  defaultValues?: Partial<{
+    title: string;
+    content: string;
+    categories: number[];
+    thumbnailUrl: string;
+  }>;
+  isEdit?: boolean;
+  error?: string | null;
+  onSubmit: (data: {
+    title: string;
+    content: string;
+    categories: number[];
+    thumbnailUrl: string;
+  }) => void;
   submitButtonText: string;
   cancelHref?: string;
   onDelete?: React.ReactNode;
 };
 
 const PostForm: React.FC<PostFormProps> = ({
-  title,
-  setTitle,
-  content,
-  setContent,
-  thumbnailUrl,
-  setThumbnailUrl,
-  selectedCategories,
-  onCategoryToggle,
-  isSubmitting,
+  defaultValues,
+  isEdit = false,
   error,
   onSubmit,
   submitButtonText,
   cancelHref,
   onDelete
 }) => {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { token } = useSupabaseSession();
+  const { categories, isLoading, isError } = useAdminCategories(token);
 
-  useEffect(() => {
-    const getCategories = async () => {
-      try {
-        const fetched = await fetchCategories();
-        setCategories(fetched);
-      } catch (err) {
-        console.error('カテゴリーの取得に失敗しました', err);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<PostFormValues>({
+    defaultValues: {
+      title: defaultValues?.title ?? '',
+      content: defaultValues?.content ?? '',
+      categories: defaultValues?.categories?.map(String) ?? []
+    }
+  });
+
+  const handleFormSubmit: SubmitHandler<PostFormValues> = async (data) => {
+    let thumbnailUrl = defaultValues?.thumbnailUrl ?? '';
+    if (data.thumbnailImage && data.thumbnailImage.length > 0) {
+      const file = data.thumbnailImage[0];
+      const filePath = `private/${uuidv4()}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('post-thumbnail')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+      if (uploadError) {
+        alert(uploadError.message);
+        return;
       }
-    };
-    getCategories();
-  }, []);
+      const {
+        data: { publicUrl }
+      } = supabase.storage.from('post-thumbnail').getPublicUrl(uploadData.path);
+      thumbnailUrl = publicUrl;
+    }
+
+    const categoryIds = data.categories.map((c) => parseInt(c, 10));
+
+    onSubmit({
+      title: data.title,
+      content: data.content,
+      categories: categoryIds,
+      thumbnailUrl
+    });
+  };
+
+  if (isLoading) return <p>カテゴリーを読み込み中...</p>;
+  if (isError) return <p>カテゴリーの取得に失敗しました。</p>;
 
   return (
     <>
       {error && <div className="mb-4 rounded bg-red-100 p-3 text-red-700">{error}</div>}
-
-      <form onSubmit={onSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
         <div>
           <label htmlFor="title" className="mb-2 block font-medium">
-            タイトル <span className="text-red-500">*</span>
+            タイトル <span className="text-red-700">*</span>
           </label>
           <input
             id="title"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded border border-gray-300 p-2"
-            required
+            {...register('title', { required: 'タイトルは必須です' })}
+            className={`w-full rounded border p-2 ${
+              errors.title ? 'border-red-500' : 'border-gray-300'
+            }`}
             disabled={isSubmitting}
           />
+          {errors.title && <p className="mt-1 text-sm text-red-700">{errors.title.message}</p>}
         </div>
 
         <div>
@@ -77,54 +118,65 @@ const PostForm: React.FC<PostFormProps> = ({
           </label>
           <textarea
             id="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
+            {...register('content')}
             className="h-64 w-full rounded border border-gray-300 p-2 font-mono"
             disabled={isSubmitting}
           />
         </div>
 
         <div>
-          <label htmlFor="thumbnailUrl" className="mb-2 block font-medium">
-            サムネイルURL
+          <label htmlFor="thumbnailImage" className="mb-2 block font-medium">
+            サムネイル画像
           </label>
           <input
-            id="thumbnailUrl"
-            type="text"
-            value={thumbnailUrl}
-            onChange={(e) => setThumbnailUrl(e.target.value)}
-            className="w-full rounded border border-gray-300 p-2"
-            placeholder="https://example.com/image.jpg"
+            id="thumbnailImage"
+            type="file"
+            {...register('thumbnailImage')}
+            accept="image/*"
             disabled={isSubmitting}
           />
         </div>
+        {isEdit && (
+          <div className="mt-2">
+            <Image
+              src={defaultValues?.thumbnailUrl || '/images/no-image.jpg'}
+              alt="thumbnail"
+              width={400}
+              height={400}
+            />
+          </div>
+        )}
 
         <div>
           <label htmlFor="categories" className="mb-2 block font-medium">
             カテゴリー
           </label>
           <fieldset id="categories" className="flex flex-wrap gap-3" disabled={isSubmitting}>
-            {categories.map(({ id, name }) => (
-              <label key={id} className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={selectedCategories.includes(id)}
-                  onChange={() => onCategoryToggle(id)}
-                  className="mr-2"
-                />
-                {name}
-              </label>
-            ))}
+            {categories && categories.length > 0 ? (
+              categories.map(({ id, name }) => (
+                <label key={id} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    {...register('categories')}
+                    value={String(id)}
+                    className="mr-2"
+                    disabled={isSubmitting}
+                  />
+                  {name}
+                </label>
+              ))
+            ) : (
+              <p className="text-sm text-gray-500">カテゴリーがありません</p>
+            )}
           </fieldset>
-          {categories.length === 0 && (
-            <p className="text-sm text-gray-500">カテゴリーがありません</p>
-          )}
         </div>
 
         <div className="flex gap-4">
           <button
             type="submit"
-            className={`rounded px-6 py-2 text-white ${isSubmitting ? 'cursor-not-allowed bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'}`}
+            className={`rounded px-6 py-2 text-white ${
+              isSubmitting ? 'cursor-not-allowed bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'
+            }`}
             disabled={isSubmitting}
           >
             {submitButtonText}
@@ -133,7 +185,9 @@ const PostForm: React.FC<PostFormProps> = ({
           {cancelHref && (
             <Link
               href={cancelHref}
-              className={`rounded border border-gray-300 px-6 py-2 ${isSubmitting ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100'}`}
+              className={`rounded border border-gray-300 px-6 py-2 ${
+                isSubmitting ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100'
+              }`}
               tabIndex={isSubmitting ? -1 : 0}
             >
               キャンセル

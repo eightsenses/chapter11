@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { PostInput } from '@/app/_types/posts';
+import { checkAuth } from '@/utils/supabase';
 
 const prisma = new PrismaClient();
 
 export const GET = async (request: NextRequest, { params }: { params: { id: string } }) => {
+  // 認証チェック
+  const { isAuthorized, response } = await checkAuth(request);
+  if (!isAuthorized) return response;
+
   const { id } = params;
 
   try {
@@ -28,7 +33,8 @@ export const GET = async (request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json({ status: 'OK', post: post }, { status: 200 });
   } catch (error) {
-    if (error instanceof Error) return NextResponse.json({ status: error.message }, { status: 400 });
+    if (error instanceof Error)
+      return NextResponse.json({ status: error.message }, { status: 400 });
   }
 };
 
@@ -38,11 +44,15 @@ export const PUT = async (
   request: NextRequest,
   { params }: { params: { id: string } } // ここでリクエストパラメータを受け取る
 ) => {
+  // 認証チェック
+  const { isAuthorized, response } = await checkAuth(request);
+  if (!isAuthorized) return response;
+
   // paramsの中にidが入っているので、それを取り出す
   const { id } = params;
 
   // リクエストのbodyを取得
-  const { title, content, categories, thumbnailUrl }: PostInput = await request.json();
+  const { title, content, categories, thumbnailImageKey }: PostInput = await request.json();
 
   try {
     // idを指定して、Postを更新
@@ -53,7 +63,7 @@ export const PUT = async (
       data: {
         title,
         content,
-        thumbnailUrl
+        thumbnailImageKey
       }
     });
 
@@ -78,7 +88,8 @@ export const PUT = async (
     // レスポンスを返す
     return NextResponse.json({ status: 'OK', post: post }, { status: 200 });
   } catch (error) {
-    if (error instanceof Error) return NextResponse.json({ status: error.message }, { status: 400 });
+    if (error instanceof Error)
+      return NextResponse.json({ status: error.message }, { status: 400 });
   }
 };
 
@@ -88,6 +99,10 @@ export const DELETE = async (
   request: NextRequest,
   { params }: { params: { id: string } } // ここでリクエストパラメータを受け取る
 ) => {
+  // 認証チェック
+  const { isAuthorized, response } = await checkAuth(request);
+  if (!isAuthorized) return response;
+
   // paramsの中にidが入っているので、それを取り出す
   const { id } = params;
 
@@ -102,6 +117,7 @@ export const DELETE = async (
     // レスポンスを返す
     return NextResponse.json({ status: 'OK' }, { status: 200 });
   } catch (error) {
-    if (error instanceof Error) return NextResponse.json({ status: error.message }, { status: 400 });
+    if (error instanceof Error)
+      return NextResponse.json({ status: error.message }, { status: 400 });
   }
 };

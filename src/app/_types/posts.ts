@@ -5,7 +5,7 @@ export type Post = {
   title: string;
   content: string;
   createdAt: string;
-  thumbnailUrl: string;
+  thumbnailImageKey: string;
   postCategories: {
     category: Category;
   }[];
@@ -14,6 +14,6 @@ export type Post = {
 export type PostInput = {
   title: string;
   content: string;
-  thumbnailUrl: string;
+  thumbnailImageKey: string;
   categories: { id: number }[];
 };

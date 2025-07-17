@@ -2,10 +2,14 @@
 const nextConfig = {
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "placehold.jp" },
-      { protocol: "https", hostname: "images.microcms-assets.io" }, // これを追加
-    ],
-  },
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co', // サブドメイン含めて許可
+        port: '',
+        pathname: '/storage/v1/object/public/post-thumbnail/**'
+      }
+    ]
+  }
 };
 
 export default nextConfig;
